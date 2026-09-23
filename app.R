@@ -268,21 +268,26 @@ server <- function(input, output, session) {
     }
   }, ignoreInit = FALSE, ignoreNULL = FALSE)
 
-  board_data <- reactive({
-    req(state$schedule, state$rankings, input$week)
-    schedule_week <- state$schedule |> filter(.data$week == as.integer(input$week))
+  modeled_schedule <- reactive({
+    req(state$schedule, state$rankings)
     games <- if (is.null(state$odds)) {
-      schedule_week |>
+      state$schedule |>
         mutate(
           market_home_line = NA_real_, market_price = NA_real_,
           market_updated = as.POSIXct(NA), bookmaker = "FanDuel"
         )
     } else {
-      join_schedule_and_odds(schedule_week, state$odds)
+      join_schedule_and_odds(state$schedule, state$odds)
     }
 
     calculate_picks(games, state$rankings, input$home_field, input$min_edge) |>
       arrange(.data$kickoff)
+  })
+
+  board_data <- reactive({
+    req(input$week)
+    modeled_schedule() |>
+      filter(.data$week == as.integer(input$week))
   })
 
   board_view <- reactive({
@@ -407,7 +412,15 @@ server <- function(input, output, session) {
 
   graded_results <- reactive({
     req(state$schedule)
-    grade_tracked_picks(tracked(), state$schedule)
+    current_edges <- modeled_schedule() |>
+      select(.data$event_id, current_edge = .data$edge)
+
+    synced <- tracked() |>
+      left_join(current_edges, by = "event_id") |>
+      mutate(edge = dplyr::coalesce(.data$current_edge, .data$edge)) |>
+      select(-.data$current_edge)
+
+    grade_tracked_picks(synced, state$schedule)
   })
 
   observe({
