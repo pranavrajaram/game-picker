@@ -141,7 +141,7 @@ history_page <- div(
 ui <- page_fluid(
   theme = chalk_theme,
   tags$head(
-    tags$title("The House Grid Always Wins"),
+    tags$title("Grid Picks"),
     tags$link(rel = "stylesheet", type = "text/css", href = "styles.css?v=history1")
   ),
   div(
