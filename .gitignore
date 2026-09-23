@@ -1,0 +1,14 @@
+.Renviron
+Renviron
+.service-account-path
+.google-sheet-url
+gridbook-*.json
+service-account*.json
+.secrets/
+cache/
+data/pick_history.csv
+data/tracked-picks.*
+data/ranking-history.*
+data/rankings-fallback.csv
+.Rhistory
+.RData

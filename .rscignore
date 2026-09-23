@@ -1,0 +1,16 @@
+.Renviron
+.service-account-path
+.google-sheet-url
+gridbook-*.json
+service-account*.json
+.Rhistory
+run-tests.R
+setup.R
+Renviron
+cache/odds_fanduel.rds
+data/tracked-picks.csv
+data/tracked-picks.rds
+data/ranking-history.csv
+data/ranking-history.rds
+data/rankings-fallback.csv
+tests/testthat/test-picker.R
