@@ -268,8 +268,28 @@ server <- function(input, output, session) {
     }
   }, ignoreInit = FALSE, ignoreNULL = FALSE)
 
+  board_rankings_for_week <- function(week) {
+    active_ranking_week <- ranking_snapshot_week(
+      state$schedule,
+      state$current_week,
+      now = Sys.time()
+    )
+    locked <- ranking_history() |>
+      filter(
+        .data$season == as.integer(input$season),
+        .data$week == as.integer(.env$week)
+      )
+
+    if (as.integer(week) < active_ranking_week && nrow(locked)) {
+      return(locked |>
+        transmute(Team = .data$team, Spread = .data$rating))
+    }
+
+    state$rankings
+  }
+
   modeled_schedule <- reactive({
-    req(state$schedule, state$rankings)
+    req(state$schedule, state$rankings, state$current_week, input$season)
     games <- if (is.null(state$odds)) {
       state$schedule |>
         mutate(
@@ -280,7 +300,18 @@ server <- function(input, output, session) {
       join_schedule_and_odds(state$schedule, state$odds)
     }
 
-    calculate_picks(games, state$rankings, input$home_field, input$min_edge) |>
+    modeled_weeks <- lapply(sort(unique(games$week)), function(week_value) {
+      week_games <- games |>
+        filter(.data$week == .env$week_value)
+      calculate_picks(
+        week_games,
+        board_rankings_for_week(week_value),
+        input$home_field,
+        input$min_edge
+      )
+    })
+
+    bind_rows(modeled_weeks) |>
       arrange(.data$kickoff)
   })
 
