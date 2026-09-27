@@ -32,6 +32,33 @@ write_ranking_history <- function(history, path = ranking_history_path) {
   invisible(history)
 }
 
+ranking_snapshot_week <- function(schedule, current_week, now = Sys.time()) {
+  current_week <- as.integer(current_week)
+  available_weeks <- sort(unique(as.integer(schedule$week)))
+  week_games <- schedule |>
+    dplyr::filter(.data$week == .env$current_week) |>
+    dplyr::mutate(
+      local_kickoff = lubridate::with_tz(.data$kickoff, "America/New_York"),
+      local_date = as.Date(.data$local_kickoff),
+      weekday = lubridate::wday(.data$local_kickoff)
+    )
+
+  sunday_dates <- week_games$local_date[week_games$weekday == 1]
+  if (!length(sunday_dates)) return(current_week)
+
+  sunday_cutoff <- as.POSIXct(
+    paste(min(sunday_dates), "13:00:00"),
+    tz = "America/New_York"
+  )
+  next_weeks <- available_weeks[available_weeks > current_week]
+
+  if (as.POSIXct(now, tz = "America/New_York") >= sunday_cutoff && length(next_weeks)) {
+    min(next_weeks)
+  } else {
+    current_week
+  }
+}
+
 create_ranking_snapshot <- function(rankings, season, week, source) {
   raw <- rankings
   names(raw) <- stringr::str_to_lower(stringr::str_trim(names(raw)))

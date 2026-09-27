@@ -2489,13 +2489,13 @@
       "checksum": "4a5b4b2f9269adaf625a769ab6568459"
     },
     "app.R": {
-      "checksum": "9aee9f992918ccae9a2b6fcc12ec382d"
+      "checksum": "674c29d1ee2a6e44479709f3ee5f6a01"
     },
     "R/cloud-storage.R": {
       "checksum": "c17ec214cf5a79c5d24ff77ad19e34f8"
     },
     "R/history.R": {
-      "checksum": "fc88f85f0cbc95712c94dc346fa2228f"
+      "checksum": "d169b53fd60faf66129a4629da493c18"
     },
     "R/picker.R": {
       "checksum": "c9f88f398f822ed3f126942a501b3a86"

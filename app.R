@@ -395,10 +395,15 @@ server <- function(input, output, session) {
   })
 
   observeEvent(list(state$rankings, state$current_week), {
-    req(state$rankings, state$current_week, input$season)
+    req(state$rankings, state$current_week, state$schedule, input$season)
     req(grepl("^Google Sheet", state$rankings_source))
+    snapshot_week <- ranking_snapshot_week(
+      state$schedule,
+      state$current_week,
+      now = Sys.time()
+    )
     snapshot <- create_ranking_snapshot(
-      state$rankings, input$season, state$current_week, state$rankings_source
+      state$rankings, input$season, snapshot_week, state$rankings_source
     )
     updated <- upsert_ranking_snapshot(read_ranking_history(), snapshot)
     ranking_history(updated)
