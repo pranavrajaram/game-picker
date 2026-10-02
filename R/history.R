@@ -98,11 +98,20 @@ upsert_ranking_snapshot <- function(history, snapshot) {
 }
 
 ranking_history_week <- function(history, season, week) {
+  selected_season <- as.integer(season)
+  selected_week <- as.integer(week)
+
   current <- history |>
-    dplyr::filter(.data$season == season, .data$week == week)
+    dplyr::filter(
+      .data$season == .env$selected_season,
+      .data$week == .env$selected_week
+    )
 
   prior_weeks <- history |>
-    dplyr::filter(.data$season == season, .data$week < week) |>
+    dplyr::filter(
+      .data$season == .env$selected_season,
+      .data$week < .env$selected_week
+    ) |>
     dplyr::pull(.data$week) |>
     unique()
 
@@ -113,7 +122,10 @@ ranking_history_week <- function(history, season, week) {
 
   previous_week <- max(prior_weeks)
   previous <- history |>
-    dplyr::filter(.data$season == season, .data$week == previous_week) |>
+    dplyr::filter(
+      .data$season == .env$selected_season,
+      .data$week == .env$previous_week
+    ) |>
     dplyr::select(.data$team, previous_rating = .data$rating, previous_rank = .data$rank)
 
   current |>
