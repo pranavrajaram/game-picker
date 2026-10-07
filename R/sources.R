@@ -125,6 +125,17 @@ load_local_odds_key <- function(session_key = "") {
   list(key = key, source = source)
 }
 
+neutral_site_overrides <- function() {
+  c(
+    "2026_05_PHI_JAX",
+    "2026_06_HOU_JAX",
+    "2026_07_PIT_NO",
+    "2026_09_CIN_ATL",
+    "2026_10_NE_DET",
+    "2026_11_MIN_SF"
+  )
+}
+
 fetch_schedule <- function(season) {
   schedule <- nflreadr::load_schedules(season)
   if (nrow(schedule) == 0) {
@@ -144,7 +155,8 @@ fetch_schedule <- function(season) {
       ),
       away_team = as.character(.data$away_team),
       home_team = as.character(.data$home_team),
-      neutral_site = dplyr::coalesce(.data$location == "Neutral", FALSE),
+      neutral_site = dplyr::coalesce(.data$location == "Neutral", FALSE) |
+        .data$game_id %in% neutral_site_overrides(),
       away_score = as.numeric(.data$away_score),
       home_score = as.numeric(.data$home_score),
       completed = !is.na(.data$away_score) & !is.na(.data$home_score),
