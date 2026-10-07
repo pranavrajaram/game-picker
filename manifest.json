@@ -2489,7 +2489,7 @@
       "checksum": "4a5b4b2f9269adaf625a769ab6568459"
     },
     "app.R": {
-      "checksum": "add3e00ab1ec3ddcf932de88d67c684a"
+      "checksum": "8e783ef824dcd8983b25adeb8bf1d556"
     },
     "R/cloud-storage.R": {
       "checksum": "c17ec214cf5a79c5d24ff77ad19e34f8"
@@ -2498,7 +2498,7 @@
       "checksum": "9f7a9ffe6dc5d968ec697261a1a250a5"
     },
     "R/picker.R": {
-      "checksum": "c9f88f398f822ed3f126942a501b3a86"
+      "checksum": "c837ef59cc7bd1b18acc75280407ddac"
     },
     "R/sources.R": {
       "checksum": "286408af5f1bacbc1958bd28b34489ad"
@@ -2510,7 +2510,7 @@
       "checksum": "d3e01b022a6371dfb59e6f595cd4a891"
     },
     "www/styles.css": {
-      "checksum": "e59a11326c28d70a57e71c2641b750bf"
+      "checksum": "7a5a6f2046c5d2e3cba3284302bef2aa"
     }
   },
   "users": null

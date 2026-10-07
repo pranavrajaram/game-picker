@@ -149,3 +149,78 @@ calculate_picks <- function(games, rankings, home_field = 2, min_edge = 1) {
       )
     )
 }
+
+remaining_strength_of_schedule <- function(schedule, rankings, home_field = 2, now = Sys.time()) {
+  ratings <- normalize_rankings(rankings) |>
+    dplyr::select(opponent = "team", opponent_rating = "rating")
+
+  remaining <- schedule |>
+    dplyr::mutate(
+      home_team = canonical_team(.data$home_team),
+      away_team = canonical_team(.data$away_team),
+      neutral_site = dplyr::coalesce(.data$neutral_site, FALSE)
+    ) |>
+    dplyr::filter(.data$kickoff > now)
+
+  home_games <- remaining |>
+    dplyr::transmute(
+      team = .data$home_team,
+      opponent = .data$away_team,
+      week = .data$week,
+      site = dplyr::if_else(.data$neutral_site, "vs (N)", "vs"),
+      site_adjustment = dplyr::if_else(.data$neutral_site, 0, -as.numeric(home_field))
+    )
+
+  away_games <- remaining |>
+    dplyr::transmute(
+      team = .data$away_team,
+      opponent = .data$home_team,
+      week = .data$week,
+      site = dplyr::if_else(.data$neutral_site, "vs (N)", "@"),
+      site_adjustment = dplyr::if_else(.data$neutral_site, 0, as.numeric(home_field))
+    )
+
+  details <- dplyr::bind_rows(home_games, away_games) |>
+    dplyr::left_join(ratings, by = "opponent") |>
+    dplyr::mutate(difficulty = .data$opponent_rating + .data$site_adjustment) |>
+    dplyr::filter(!is.na(.data$team), !is.na(.data$opponent_rating))
+
+  summary <- details |>
+    dplyr::group_by(.data$team) |>
+    dplyr::summarise(
+      remaining = dplyr::n(),
+      sos_rating = mean(.data$difficulty),
+      .groups = "drop"
+    )
+
+  hardest <- details |>
+    dplyr::group_by(.data$team) |>
+    dplyr::slice_max(.data$difficulty, n = 1, with_ties = FALSE) |>
+    dplyr::ungroup() |>
+    dplyr::select(
+      "team",
+      hardest_opponent = "opponent",
+      hardest_week = "week",
+      hardest_site = "site",
+      hardest_rating = "difficulty"
+    )
+
+  easiest <- details |>
+    dplyr::group_by(.data$team) |>
+    dplyr::slice_min(.data$difficulty, n = 1, with_ties = FALSE) |>
+    dplyr::ungroup() |>
+    dplyr::select(
+      "team",
+      easiest_opponent = "opponent",
+      easiest_week = "week",
+      easiest_site = "site",
+      easiest_rating = "difficulty"
+    )
+
+  team_dictionary() |>
+    dplyr::transmute(team = .data$abbr) |>
+    dplyr::left_join(summary, by = "team") |>
+    dplyr::left_join(hardest, by = "team") |>
+    dplyr::left_join(easiest, by = "team") |>
+    dplyr::arrange(dplyr::desc(.data$sos_rating), .data$team)
+}

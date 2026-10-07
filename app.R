@@ -138,11 +138,23 @@ history_page <- div(
   )
 )
 
+sos_page <- div(
+  class = "sos-page",
+  div(
+    class = "sos-toolbar",
+    h2("Remaining strength of schedule")
+  ),
+  tags$section(
+    class = "chalk-panel sos-panel",
+    DTOutput("sos_table")
+  )
+)
+
 ui <- page_fluid(
   theme = chalk_theme,
   tags$head(
     tags$title("Grid Picks"),
-    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css?v=history1")
+    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css?v=sos1")
   ),
   div(
     class = "app-header",
@@ -152,6 +164,7 @@ ui <- page_fluid(
     id = "main_page",
     nav_panel("BOARD", board_page),
     nav_panel("RESULTS", results_page),
+    nav_panel("STRENGTH OF SCHEDULE", sos_page),
     nav_panel("RANKING HISTORY", history_page)
   )
 )
@@ -592,6 +605,66 @@ server <- function(input, output, session) {
         color = JS("value === '—' ? '#aca48e' : (value.charAt(0) === '+' ? '#d7e99b' : (value.charAt(0) === '-' ? '#f0a39a' : '#f3eddd'))"),
         fontWeight = "700"
       )
+  })
+
+  sos_display <- reactive({
+    req(state$schedule, state$rankings, input$home_field)
+    names_lookup <- team_name_lookup()
+
+    remaining_strength_of_schedule(
+      state$schedule,
+      state$rankings,
+      home_field = input$home_field,
+      now = Sys.time()
+    ) |>
+      mutate(
+        `SOS rank` = row_number(),
+        Team = names_lookup[.data$team],
+        Remaining = dplyr::coalesce(.data$remaining, 0L),
+        `SOS rating` = if_else(
+          is.na(.data$sos_rating), "—",
+          formatC(.data$sos_rating, format = "f", digits = 1)
+        ),
+        `Hardest left` = if_else(
+          is.na(.data$hardest_opponent), "—",
+          paste0(
+            .data$hardest_site, " ", names_lookup[.data$hardest_opponent],
+            " · W", .data$hardest_week, " · ",
+            formatC(.data$hardest_rating, format = "f", digits = 1)
+          )
+        ),
+        `Easiest left` = if_else(
+          is.na(.data$easiest_opponent), "—",
+          paste0(
+            .data$easiest_site, " ", names_lookup[.data$easiest_opponent],
+            " · W", .data$easiest_week, " · ",
+            formatC(.data$easiest_rating, format = "f", digits = 1)
+          )
+        )
+      ) |>
+      select("SOS rank", "Team", "Remaining", "SOS rating", "Hardest left", "Easiest left")
+  })
+
+  output$sos_table <- renderDT({
+    datatable(
+      sos_display(), rownames = FALSE, selection = "none",
+      options = list(
+        dom = "t", ordering = FALSE, paging = FALSE, scrollX = TRUE,
+        columnDefs = list(
+          list(width = "54px", targets = 0),
+          list(width = "150px", targets = 1),
+          list(width = "82px", targets = 2),
+          list(width = "92px", targets = 3),
+          list(width = "220px", targets = c(4, 5))
+        )
+      ),
+      class = "chalk-table sos-table"
+    ) |>
+      formatStyle(c("SOS rank", "Remaining"), color = "#f3eddd", fontWeight = "700") |>
+      formatStyle("Team", fontSize = "13px", fontWeight = "800") |>
+      formatStyle("SOS rating", color = "#e7ca78", fontSize = "14px", fontWeight = "800") |>
+      formatStyle("Hardest left", color = "#f0a39a", fontWeight = "700") |>
+      formatStyle("Easiest left", color = "#d7e99b", fontWeight = "700")
   })
 
   output$selection_count <- renderText({

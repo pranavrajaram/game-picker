@@ -286,7 +286,8 @@ body {
 .section-heading h2,
 .section-heading h3,
 .results-toolbar h2,
-.history-toolbar h2 {
+.history-toolbar h2,
+.sos-toolbar h2 {
   color: var(--chalk);
   font-size: 19px;
   font-weight: 700;
@@ -401,6 +402,11 @@ table.dataTable tbody tr.is-tracked td:first-child {
   padding-bottom: 30px;
 }
 
+.sos-page {
+  max-width: 1180px;
+  padding-bottom: 30px;
+}
+
 .history-toolbar {
   align-items: flex-end;
   border-bottom: 1px solid var(--rule-strong);
@@ -408,6 +414,23 @@ table.dataTable tbody tr.is-tracked td:first-child {
   justify-content: space-between;
   margin-bottom: 24px;
   padding: 0 0 18px;
+}
+
+.sos-toolbar {
+  align-items: center;
+  border-bottom: 1px solid var(--rule-strong);
+  display: flex;
+  margin-bottom: 24px;
+  padding: 0 0 18px;
+}
+
+.sos-table td:nth-child(1),
+.sos-table th:nth-child(1),
+.sos-table td:nth-child(3),
+.sos-table th:nth-child(3),
+.sos-table td:nth-child(4),
+.sos-table th:nth-child(4) {
+  text-align: center;
 }
 
 .history-toolbar .form-group {
@@ -507,7 +530,8 @@ table.dataTable tbody tr.is-tracked td:first-child {
 
   .app-header,
   .results-toolbar,
-  .history-toolbar {
+  .history-toolbar,
+  .sos-toolbar {
     align-items: flex-start;
     flex-direction: column;
     gap: 10px;
