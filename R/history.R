@@ -80,6 +80,7 @@ create_ranking_snapshot <- function(rankings, season, week, source) {
   normalize_rankings(rankings) |>
     dplyr::select(.data$team, .data$rating) |>
     dplyr::left_join(tiers, by = "team") |>
+    dplyr::arrange(dplyr::desc(.data$rating)) |>
     dplyr::mutate(
       season = as.integer(season),
       week = as.integer(week),
@@ -90,24 +91,34 @@ create_ranking_snapshot <- function(rankings, season, week, source) {
     dplyr::select(.data$season, .data$week, .data$rank, .data$team, .data$rating, .data$tier, .data$source, .data$captured_at)
 }
 
+recalculate_ranking_history_ranks <- function(history) {
+  history |>
+    dplyr::group_by(.data$season, .data$week) |>
+    dplyr::arrange(dplyr::desc(.data$rating), .by_group = TRUE) |>
+    dplyr::mutate(rank = dplyr::row_number()) |>
+    dplyr::ungroup()
+}
+
 upsert_ranking_snapshot <- function(history, snapshot) {
   history |>
     dplyr::filter(!(.data$season == snapshot$season[[1]] & .data$week == snapshot$week[[1]])) |>
     dplyr::bind_rows(snapshot) |>
+    recalculate_ranking_history_ranks() |>
     dplyr::arrange(.data$season, .data$week, .data$rank)
 }
 
 ranking_history_week <- function(history, season, week) {
   selected_season <- as.integer(season)
   selected_week <- as.integer(week)
+  ranked_history <- recalculate_ranking_history_ranks(history)
 
-  current <- history |>
+  current <- ranked_history |>
     dplyr::filter(
       .data$season == .env$selected_season,
       .data$week == .env$selected_week
     )
 
-  prior_weeks <- history |>
+  prior_weeks <- ranked_history |>
     dplyr::filter(
       .data$season == .env$selected_season,
       .data$week < .env$selected_week
@@ -121,7 +132,7 @@ ranking_history_week <- function(history, season, week) {
   }
 
   previous_week <- max(prior_weeks)
-  previous <- history |>
+  previous <- ranked_history |>
     dplyr::filter(
       .data$season == .env$selected_season,
       .data$week == .env$previous_week
